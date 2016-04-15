@@ -65,6 +65,28 @@ describe('Bot', function() {
     DiscordStub.prototype.sendMessage.should.not.have.been.called;
   });
 
+  it('should not color irc messages if the option is disabled', function() {
+    const text = 'testmessage';
+    const newConfig = { ...config, ircNickColor: false };
+    const bot = new Bot(newConfig);
+    bot.connect();
+    const message = {
+      content: text,
+      mentions: [],
+      channel: {
+        name: 'discord'
+      },
+      author: {
+        username: 'otherauthor',
+        id: 'not bot id'
+      }
+    };
+
+    bot.sendToIRC(message);
+    const expected = `<${message.author.username}> ${text}`;
+    ClientStub.prototype.say.should.have.been.calledWith('#irc', expected);
+  });
+
   it('should send correct messages to irc', function() {
     const text = 'testmessage';
     const message = {
@@ -103,10 +125,56 @@ describe('Bot', function() {
     };
 
     this.bot.sendToIRC(message);
-    // Wrap in colors:
-    const expected = `\u000304${message.author.username}\u000f posted an attachment to ` +
-      `#${message.channel.name} on Discord: ${attachmentUrl}`;
+    const expected = `<\u000304${message.author.username}\u000f> ${attachmentUrl}`;
     ClientStub.prototype.say.should.have.been.calledWith('#irc', expected);
+  });
+
+  it('should send text message and attachment URL to IRC if both exist', function() {
+    const text = 'Look at this cute cat picture!';
+    const attachmentUrl = 'https://image/url.jpg';
+    const message = {
+      content: text,
+      attachments: [{
+        url: attachmentUrl
+      }],
+      mentions: [],
+      channel: {
+        name: 'discord'
+      },
+      author: {
+        username: 'otherauthor',
+        id: 'not bot id'
+      }
+    };
+
+    this.bot.sendToIRC(message);
+
+    ClientStub.prototype.say.should.have.been.calledWith('#irc',
+      `<\u000304${message.author.username}\u000f> ${text}`);
+
+    const expected = `<\u000304${message.author.username}\u000f> ${attachmentUrl}`;
+    ClientStub.prototype.say.should.have.been.calledWith('#irc', expected);
+  });
+
+  it('should not send an empty text message with an attachment to IRC', function() {
+    const message = {
+      content: '',
+      attachments: [{
+        url: 'https://image/url.jpg'
+      }],
+      mentions: [],
+      channel: {
+        name: 'discord'
+      },
+      author: {
+        username: 'otherauthor',
+        id: 'not bot id'
+      }
+    };
+
+    this.bot.sendToIRC(message);
+
+    ClientStub.prototype.say.should.have.been.calledOnce;
   });
 
   it('should not send its own messages to irc', function() {
@@ -200,7 +268,7 @@ describe('Bot', function() {
     const username = 'ircuser';
     const text = 'Hello, @testuser and @anotheruser, was our meeting scheduled @5pm?';
     const expected = `**<${username}>** Hello, <@${testuser.id}> and <@${anotheruser.id}>,` +
-     ` was our meeting scheduled @5pm?`;
+     ' was our meeting scheduled @5pm?';
 
     this.bot.sendToDiscord(username, '#irc', text);
     DiscordStub.prototype.sendMessage.should.have.been.calledWith(discordChannel, expected);

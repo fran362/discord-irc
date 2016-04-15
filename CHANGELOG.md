@@ -1,13 +1,31 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2016-04-04
+Implemented by @rce:
+### Added
+- Support for messages containing both attachments and text.
+
+### Changed
+- Attachment URLs are now posted by themselves, instead of including a
+preliminary message explaining that it's an attachment.
+
+## [0.7.0] - 2016-04-04
+### Added
+- Added the config option `ircNickColor` to make it possible to
+disable nick colors for messages sent to IRC.
+
+## [0.6.1] - 2016-04-04
+### Fixed
+- Upgrade dependencies.
+
 ## [0.6.0] - 2016-02-24
 ### Added
 - Highlight Discord users when they're mentioned on IRC (thanks to @rce).
 
 ## [0.5.0] - 2016-02-08
 ### Added
-- Discord attachments will be linked to on IRC when 
+- Discord attachments will be linked to on IRC when
 they're posted (fixed by @rce).
 
 ## [0.4.3] - 2016-01-23
